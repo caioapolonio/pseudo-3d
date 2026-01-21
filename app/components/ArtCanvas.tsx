@@ -1,7 +1,6 @@
 'use client'
 import { useEffect, useRef } from 'react'
 
-// 1. Definição dos tipos para a matemática da arte
 interface Point3D {
   x: number
   y: number
@@ -15,22 +14,35 @@ interface Point2D {
 
 interface ArtData {
   vs: Point3D[]
-  fs: number[][] // Array de índices que apontam para os vértices
+  fs: number[][]
 }
 
 interface ArtCanvasProps {
   artData: () => ArtData
   width?: number
   height?: number
+  rotationSpeed?: number
+  color?: string
 }
 
 export default function ArtCanvas({
   artData,
   width = 400,
   height = 400,
+  rotationSpeed = 0.02,
+  color = '#50FF50',
 }: ArtCanvasProps) {
-  // 2. Tipagem do Ref para HTMLCanvasElement
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const speedRef = useRef(rotationSpeed)
+  const colorRef = useRef(color)
+
+  useEffect(() => {
+    speedRef.current = rotationSpeed
+  }, [rotationSpeed])
+
+  useEffect(() => {
+    colorRef.current = color
+  }, [color])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -44,9 +56,7 @@ export default function ArtCanvas({
     let animationFrameId: number
 
     const BACKGROUND = '#101010'
-    const FOREGROUND = '#50FF50'
 
-    // Funções utilitárias com tipagem explícita
     const project = ({ x, y, z }: Point3D): Point2D => ({ x: x / z, y: y / z })
 
     const translate_z = ({ x, y, z }: Point3D, dz: number): Point3D => ({
@@ -67,12 +77,12 @@ export default function ArtCanvas({
     })
 
     const draw = () => {
-      angle += 0.02
+      angle += speedRef.current
       ctx.fillStyle = BACKGROUND
       ctx.fillRect(0, 0, canvas.width, canvas.height)
 
       ctx.lineWidth = 2
-      ctx.strokeStyle = FOREGROUND
+      ctx.strokeStyle = colorRef.current
 
       fs.forEach((f) => {
         ctx.beginPath()
@@ -81,14 +91,14 @@ export default function ArtCanvas({
           if (!pRaw) continue
 
           const pRot = rotate_xz(pRaw, angle)
-          const pTrans = translate_z(pRot, 1) // dz = 1
+          const pTrans = translate_z(pRot, 1)
           const pProj = screen(project(pTrans))
 
           if (i === 0) ctx.moveTo(pProj.x, pProj.y)
           else ctx.lineTo(pProj.x, pProj.y)
         }
         if (f.length > 2) {
-          ctx.closePath() // Fecha o polígono (ex: liga o índice 3 ao 0)
+          ctx.closePath()
         }
         ctx.stroke()
       })
