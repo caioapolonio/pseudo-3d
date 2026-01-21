@@ -15,7 +15,7 @@ export default function Home() {
             className="border border-gray-700 p-4 hover:border-green-500 transition"
           >
             <ArtCanvas artData={art.data} width={300} height={300} />
-            <h2 className="mt-4 text-xl text-center">{art.nome}</h2>
+            <h2 className="mt-4 text-xl text-center">{art.name}</h2>
           </Link>
         ))}
       </div>

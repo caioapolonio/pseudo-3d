@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useImperativeHandle, forwardRef } from 'react'
 
 interface Point3D {
   x: number
@@ -25,97 +25,113 @@ interface ArtCanvasProps {
   color?: string
 }
 
-export default function ArtCanvas({
-  artData,
-  width = 400,
-  height = 400,
-  rotationSpeed = 0.02,
-  color = '#50FF50',
-}: ArtCanvasProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const speedRef = useRef(rotationSpeed)
-  const colorRef = useRef(color)
+const ArtCanvas = forwardRef(
+  (
+    {
+      artData,
+      width = 400,
+      height = 400,
+      rotationSpeed = 0.02,
+      color = '#50FF50',
+    }: ArtCanvasProps,
+    ref,
+  ) => {
+    const canvasRef = useRef<HTMLCanvasElement>(null)
+    const speedRef = useRef(rotationSpeed)
+    const colorRef = useRef(color)
 
-  useEffect(() => {
-    speedRef.current = rotationSpeed
-  }, [rotationSpeed])
+    useImperativeHandle(ref, () => canvasRef.current)
 
-  useEffect(() => {
-    colorRef.current = color
-  }, [color])
+    useEffect(() => {
+      speedRef.current = rotationSpeed
+    }, [rotationSpeed])
 
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
+    useEffect(() => {
+      colorRef.current = color
+    }, [color])
 
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
+    useEffect(() => {
+      const canvas = canvasRef.current
+      if (!canvas) return
 
-    const { vs, fs } = artData()
-    let angle = 0
-    let animationFrameId: number
+      const ctx = canvas.getContext('2d')
 
-    const BACKGROUND = '#101010'
+      if (!ctx) return
 
-    const project = ({ x, y, z }: Point3D): Point2D => ({ x: x / z, y: y / z })
+      ctx.imageSmoothingEnabled = true
+      ctx.imageSmoothingQuality = 'high'
 
-    const translate_z = ({ x, y, z }: Point3D, dz: number): Point3D => ({
-      x,
-      y,
-      z: z + dz,
-    })
+      const { vs, fs } = artData()
+      let angle = 0
+      let animationFrameId: number
 
-    const rotate_xz = ({ x, y, z }: Point3D, angle: number): Point3D => {
-      const c = Math.cos(angle)
-      const s = Math.sin(angle)
-      return { x: x * c - z * s, y, z: x * s + z * c }
-    }
+      const BACKGROUND = '#101010'
 
-    const screen = (p: Point2D): Point2D => ({
-      x: ((p.x + 1) / 2) * canvas.width,
-      y: (1 - (p.y + 1) / 2) * canvas.height,
-    })
-
-    const draw = () => {
-      angle += speedRef.current
-      ctx.fillStyle = BACKGROUND
-      ctx.fillRect(0, 0, canvas.width, canvas.height)
-
-      ctx.lineWidth = 2
-      ctx.strokeStyle = colorRef.current
-
-      fs.forEach((f) => {
-        ctx.beginPath()
-        for (let i = 0; i < f.length; i++) {
-          const pRaw = vs[f[i]]
-          if (!pRaw) continue
-
-          const pRot = rotate_xz(pRaw, angle)
-          const pTrans = translate_z(pRot, 1)
-          const pProj = screen(project(pTrans))
-
-          if (i === 0) ctx.moveTo(pProj.x, pProj.y)
-          else ctx.lineTo(pProj.x, pProj.y)
-        }
-        if (f.length > 2) {
-          ctx.closePath()
-        }
-        ctx.stroke()
+      const project = ({ x, y, z }: Point3D): Point2D => ({
+        x: x / z,
+        y: y / z,
       })
 
-      animationFrameId = requestAnimationFrame(draw)
-    }
+      const translate_z = ({ x, y, z }: Point3D, dz: number): Point3D => ({
+        x,
+        y,
+        z: z + dz,
+      })
 
-    draw()
-    return () => cancelAnimationFrame(animationFrameId)
-  }, [artData])
+      const rotate_xz = ({ x, y, z }: Point3D, angle: number): Point3D => {
+        const c = Math.cos(angle)
+        const s = Math.sin(angle)
+        return { x: x * c - z * s, y, z: x * s + z * c }
+      }
 
-  return (
-    <canvas
-      ref={canvasRef}
-      width={width}
-      height={height}
-      className="rounded-lg shadow-2xl bg-[#101010]"
-    />
-  )
-}
+      const screen = (p: Point2D): Point2D => ({
+        x: ((p.x + 1) / 2) * canvas.width,
+        y: (1 - (p.y + 1) / 2) * canvas.height,
+      })
+
+      const draw = () => {
+        angle += speedRef.current
+        ctx.fillStyle = BACKGROUND
+        ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+        ctx.lineWidth = 2
+        ctx.strokeStyle = colorRef.current
+
+        fs.forEach((f) => {
+          ctx.beginPath()
+          for (let i = 0; i < f.length; i++) {
+            const pRaw = vs[f[i]]
+            if (!pRaw) continue
+
+            const pRot = rotate_xz(pRaw, angle)
+            const pTrans = translate_z(pRot, 1)
+            const pProj = screen(project(pTrans))
+
+            if (i === 0) ctx.moveTo(pProj.x, pProj.y)
+            else ctx.lineTo(pProj.x, pProj.y)
+          }
+          if (f.length > 2) {
+            ctx.closePath()
+          }
+          ctx.stroke()
+        })
+
+        animationFrameId = requestAnimationFrame(draw)
+      }
+
+      draw()
+      return () => cancelAnimationFrame(animationFrameId)
+    }, [artData])
+
+    return (
+      <canvas
+        ref={canvasRef}
+        width={width}
+        height={height}
+        className="rounded-lg shadow-2xl bg-[#101010]"
+      />
+    )
+  },
+)
+ArtCanvas.displayName = 'ArtCanvas'
+export default ArtCanvas

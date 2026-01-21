@@ -4,12 +4,12 @@ import { cubeData } from './cube'
 export const ARTS = [
   {
     id: 'donut',
-    nome: 'Donut 3D',
+    name: 'Donut',
     data: donutData,
   },
   {
     id: 'cube',
-    nome: 'Cubo 3D',
+    name: 'Cube',
     data: cubeData,
   },
 ]
