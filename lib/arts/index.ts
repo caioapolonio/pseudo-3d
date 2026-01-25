@@ -1,5 +1,7 @@
 import { donutData } from './donut'
 import { cubeData } from './cube'
+import { peaceData } from './peace'
+import { ballData } from './ball'
 
 export const ARTS = [
   {
@@ -11,5 +13,15 @@ export const ARTS = [
     id: 'cube',
     name: 'Cube',
     data: cubeData,
+  },
+  {
+    id: 'peace',
+    name: 'Peace',
+    data: peaceData,
+  },
+  {
+    id: 'ball',
+    name: 'Ball',
+    data: ballData,
   },
 ]

@@ -1,18 +1,18 @@
 'use client'
 import { useEffect, useRef, useImperativeHandle, forwardRef } from 'react'
 
-interface Point3D {
+export interface Point3D {
   x: number
   y: number
   z: number
 }
 
-interface Point2D {
+export interface Point2D {
   x: number
   y: number
 }
 
-interface ArtData {
+export interface ArtData {
   vs: Point3D[]
   fs: number[][]
 }
