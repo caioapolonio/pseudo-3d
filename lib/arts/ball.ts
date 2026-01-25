@@ -1,6 +1,8 @@
-export const ballData = () => {
-  const vs = []
-  const fs = []
+import { ArtData, Point3D } from '@/app/components/ArtCanvas'
+
+export const ballData = (): ArtData => {
+  const vs: Point3D[] = []
+  const fs: number[][] = []
 
   const rings = 12 // Linhas horizontais (latitude)
   const segments = 16 // Linhas verticais (longitude)

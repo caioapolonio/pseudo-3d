@@ -11,6 +11,8 @@ export default function ArtPage() {
 
   const [speed, setSpeed] = useState(0.02)
   const [color, setColor] = useState('#50FF50')
+  const [enableYRotation, setEnableYRotation] = useState(false)
+  const [speedY, setSpeedY] = useState(0.02)
   const [isRecording, setIsRecording] = useState(false)
   const [progress, setProgress] = useState(0)
 
@@ -111,6 +113,36 @@ export default function ArtPage() {
             />
           </div>
 
+          <div className="flex flex-col items-center gap-2">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={enableYRotation}
+                onChange={(e) => setEnableYRotation(e.target.checked)}
+                className="w-4 h-4 accent-green-500 cursor-pointer"
+              />
+              <span className="text-xs uppercase tracking-widest text-gray-400">
+                Y Rotation
+              </span>
+            </label>
+            {enableYRotation && (
+              <div className="flex flex-col items-center gap-1 mt-2">
+                <label className="text-xs uppercase tracking-widest text-gray-400">
+                  Y Speed: {(speedY * 100).toFixed(1)}
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max="0.2"
+                  step="0.001"
+                  value={speedY}
+                  onChange={(e) => setSpeedY(parseFloat(e.target.value))}
+                  className="w-48 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-green-500"
+                />
+              </div>
+            )}
+          </div>
+
           <div className="flex flex-col items-center gap-3">
             <button
               onClick={handleDownloadVideo}
@@ -144,6 +176,7 @@ export default function ArtPage() {
           width={300}
           height={300}
           rotationSpeed={speed}
+          rotationSpeedY={enableYRotation ? speedY : 0}
           color={color}
         />
       </div>
@@ -154,6 +187,7 @@ export default function ArtPage() {
           width={600}
           height={600}
           rotationSpeed={speed}
+          rotationSpeedY={enableYRotation ? speedY : 0}
           color={color}
         />
       </div>

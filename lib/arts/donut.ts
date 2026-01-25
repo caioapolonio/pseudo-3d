@@ -1,6 +1,8 @@
-export const donutData = () => {
-  const vs = []
-  const fs = []
+import { ArtData, Point3D } from '@/app/components/ArtCanvas'
+
+export const donutData = (): ArtData => {
+  const vs: Point3D[] = []
+  const fs: number[][] = []
   const TRich = 0.5
   const tTube = 0.2
   const rings = 24

@@ -1,9 +1,16 @@
+import { ArtData } from '@/app/components/ArtCanvas'
 import { donutData } from './donut'
 import { cubeData } from './cube'
 import { peaceData } from './peace'
 import { ballData } from './ball'
 
-export const ARTS = [
+export interface Art {
+  id: string
+  name: string
+  data: () => ArtData
+}
+
+export const ARTS: Art[] = [
   {
     id: 'donut',
     name: 'Donut',

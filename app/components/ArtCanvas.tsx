@@ -22,6 +22,7 @@ interface ArtCanvasProps {
   width?: number
   height?: number
   rotationSpeed?: number
+  rotationSpeedY?: number
   color?: string
 }
 
@@ -32,12 +33,14 @@ const ArtCanvas = forwardRef(
       width = 400,
       height = 400,
       rotationSpeed = 0.02,
+      rotationSpeedY = 0,
       color = '#50FF50',
     }: ArtCanvasProps,
     ref,
   ) => {
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const speedRef = useRef(rotationSpeed)
+    const speedYRef = useRef(rotationSpeedY)
     const colorRef = useRef(color)
 
     useImperativeHandle(ref, () => canvasRef.current)
@@ -45,6 +48,10 @@ const ArtCanvas = forwardRef(
     useEffect(() => {
       speedRef.current = rotationSpeed
     }, [rotationSpeed])
+
+    useEffect(() => {
+      speedYRef.current = rotationSpeedY
+    }, [rotationSpeedY])
 
     useEffect(() => {
       colorRef.current = color
@@ -62,15 +69,19 @@ const ArtCanvas = forwardRef(
       ctx.imageSmoothingQuality = 'high'
 
       const { vs, fs } = artData()
-      let angle = 0
+      let angleXZ = 0
+      let angleY = 0
       let animationFrameId: number
 
       const BACKGROUND = '#101010'
 
-      const project = ({ x, y, z }: Point3D): Point2D => ({
-        x: x / z,
-        y: y / z,
-      })
+      const project = ({ x, y, z }: Point3D): Point2D => {
+        const safeZ = Math.max(z, 0.001)
+        return {
+          x: x / safeZ,
+          y: y / safeZ,
+        }
+      }
 
       const translate_z = ({ x, y, z }: Point3D, dz: number): Point3D => ({
         x,
@@ -84,13 +95,20 @@ const ArtCanvas = forwardRef(
         return { x: x * c - z * s, y, z: x * s + z * c }
       }
 
+      const rotate_y = ({ x, y, z }: Point3D, angle: number): Point3D => {
+        const c = Math.cos(angle)
+        const s = Math.sin(angle)
+        return { x, y: y * c - z * s, z: y * s + z * c }
+      }
+
       const screen = (p: Point2D): Point2D => ({
         x: ((p.x + 1) / 2) * canvas.width,
         y: (1 - (p.y + 1) / 2) * canvas.height,
       })
 
       const draw = () => {
-        angle += speedRef.current
+        angleXZ += speedRef.current
+        angleY += speedYRef.current
         ctx.fillStyle = BACKGROUND
         ctx.fillRect(0, 0, canvas.width, canvas.height)
 
@@ -103,8 +121,9 @@ const ArtCanvas = forwardRef(
             const pRaw = vs[f[i]]
             if (!pRaw) continue
 
-            const pRot = rotate_xz(pRaw, angle)
-            const pTrans = translate_z(pRot, 1)
+            const pRotXZ = rotate_xz(pRaw, angleXZ)
+            const pRotY = rotate_y(pRotXZ, angleY)
+            const pTrans = translate_z(pRotY, 1)
             const pProj = screen(project(pTrans))
 
             if (i === 0) ctx.moveTo(pProj.x, pProj.y)
